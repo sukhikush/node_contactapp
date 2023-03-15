@@ -10,7 +10,7 @@ const {
 
 userRoute.post("/", createUser);
 userRoute.get("/", getUser);
-userRoute.get("/id/:userId", getUserId);
 userRoute.get("/getAll", getUserAll);
+userRoute.get("/id/:userId", getUserId);
 
 module.exports = userRoute;
