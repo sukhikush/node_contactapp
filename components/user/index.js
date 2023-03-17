@@ -6,11 +6,13 @@ const {
   getUser,
   getUserAll,
   getUserId,
+  login,
 } = require("./controller/userController");
 
-userRoute.post("/", createUser);
-userRoute.get("/", getUser);
+userRoute.post("/login", login);
+userRoute.post("/create", createUser);
+userRoute.get("/get", getUser);
 userRoute.get("/getAll", getUserAll);
-userRoute.get("/id/:userId", getUserId);
+userRoute.get("/getId/:userId", getUserId);
 
 module.exports = userRoute;

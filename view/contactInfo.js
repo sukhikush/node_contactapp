@@ -1,24 +1,26 @@
-var userDB = require("../db");
+var { userDB } = require("../db");
 var uuid = require("uuid");
-
+var db = require("../models");
 class contactInfo {
-    constructor(Ctype,Cdata){
-        this.contactInfoId = uuid.v4()
-        this.conatctInfoType = Ctype 
-        this.conatctInfoData = Cdata
-    }
+  constructor(Ctype, Cdata) {
+    this.contactInfoId = uuid.v4();
+    this.conatctInfoType = Ctype;
+    this.conatctInfoData = Cdata;
+  }
 
-    static contactInfo (userId,contactId,Ctype,Cdata) {
-        const newCont = new contactInfo(Ctype,Cdata)
-        console.log("==============")
-        console.log(JSON.stringify(userDB,null, " "))
-        userDB[userId].contact[contactId].contact_info[newCont.contactInfoId] = newCont
-        
-        console.log("==============")
-        console.log(JSON.stringify(userDB,null, " "))
-        
-        return newCont.contactInfoId;
+  static async contactInfo(userId, contactId, Ctype, Cdata) {
+    var status = await db.contactinfo.create({
+      conatctInfoType: Ctype,
+      conatctInfoData: Cdata,
+      conatctId: contactId,
+    });
+
+    if (!!status && !!status.id) {
+      return status.id;
+    } else {
+      throw new Error("Error in creating contact");
     }
+  }
 }
 
-module.exports = contactInfo
+module.exports = contactInfo;

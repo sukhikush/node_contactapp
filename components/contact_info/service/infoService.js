@@ -1,13 +1,17 @@
 const contactInfo = require("../../../view/contactInfo");
-const userDB = require("../../../db")
+const Contact = require("../../../view/contact");
+const { userDB } = require("../../../db");
+const { badRequestError } = require("../../../error");
 
-var createContactInfo = (userId,contactId,Ctype,Cdata) => {
-    if(typeof userDB[userId] !== 'undefined' && typeof userDB[userId].contact[contactId] !== 'undefined'){
-        contactInfo.contactInfo(userId,contactId,Ctype,Cdata);
-        return "Contact Info Created"
-    }else{
-        throw new Error("Error: Incorrect id!!")
-    }
-}
+var createContactInfo = async (userId, contactId, Ctype, Cdata) => {
+  var contact = await Contact.findContactByUserId(userId, contactId);
 
-module.exports = {createContactInfo}
+  if (!!contact && !!contact.id) {
+    var data = await contactInfo.contactInfo(userId, contactId, Ctype, Cdata);
+    return data;
+  } else {
+    throw new badRequestError("Error: Incorrect id!!");
+  }
+};
+
+module.exports = { createContactInfo };

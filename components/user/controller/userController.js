@@ -3,39 +3,67 @@ const {
   getUser: getUserData,
   getUserId: getUserIdData,
   getUserAll: getUserAllData,
+  verifyUsers: verifyUsers,
 } = require("../service/userService");
 
-const createUser = (req, res, next) => {
-  console.log("fff", req.body);
+const { badRequestError } = require("../../../error");
+const { StatusCodes } = require("http-status-codes");
+const Users = require("../../../view/user");
+
+const createUser = async (req, res, next) => {
   try {
-    var { name } = req.body;
-    if (!!name) {
-      var result = userServiceCreateUser(name);
-      res.send(result);
+    var { name, pass, email } = req.body;
+    if (!!name && !!pass && !!email) {
+      var user = new Users(name, pass, email);
+      var result = await userServiceCreateUser(user);
+      res.status(StatusCodes.OK).send(result);
     } else {
-      res.status(400);
-      res.send("Name cannot be blank");
+      throw new badRequestError("Name, Pass, & email cannot be blank");
     }
   } catch (err) {
-    res.status(500);
-    res.send(err.message);
+    console.log("***********************create user************");
+    next(err);
   }
 };
 
-const getUser = (req, res, next) => {
-  var data = getUserData();
-  res.send(data);
+const login = async (req, res, next) => {
+  try {
+    var { name, pass, email } = req.body;
+    if (!!name && !!pass && !!email) {
+      var token = await verifyUsers({
+        userName: name,
+        userPass: pass,
+        userEmail: email,
+      });
+      if (!!token.token) {
+        res.cookie("authorization", token.token);
+        res.send("User Authenticated");
+      } else {
+        throw new badRequestError("Invalid Credentials");
+      }
+    } else {
+      throw new badRequestError("Name and Pass cannot be blank");
+    }
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
 };
 
-const getUserId = (req, res, next) => {
-  console.log("ff", req.params.userId);
-  var data = getUserIdData(req.params.userId);
-  res.send(data);
+const getUser = async (req, res, next) => {
+  var data = await getUserData();
+  console.log(data);
+  res.status(StatusCodes.OK).send(data);
 };
 
-const getUserAll = (req, res, next) => {
-  var data = getUserAllData();
-  res.send(data);
+const getUserId = async (req, res, next) => {
+  var data = await getUserIdData(req.params.userId);
+  res.status(StatusCodes.OK).send(data);
 };
 
-module.exports = { createUser, getUser, getUserId, getUserAll };
+const getUserAll = async (req, res, next) => {
+  var data = await getUserAllData();
+  res.status(StatusCodes.OK).send(data);
+};
+
+module.exports = { createUser, getUser, getUserId, getUserAll, login };

@@ -17,38 +17,91 @@ const users = {
 }
 */
 
-var userDB = require("../db");
+var { userDB } = require("../db");
 var uuid = require("uuid");
+var db = require("../models");
+const contact = require("../models/contact");
 
 class Users {
-  constructor(name) {
+  constructor(name, pass, email) {
     this.userId = uuid.v4();
     this.userName = name;
+    this.userPass = pass;
+    this.userEmail = email;
     this.contact = {};
   }
 
-  static createUser(name) {
-    const newUser = new Users(name);
-    userDB[newUser.userId] = newUser;
-    console.log(JSON.stringify(userDB, null, " "));
-    return newUser.userId;
+  async createUser() {
+    // userDB[this.userId] = this;
+    // console.log(JSON.stringify(userDB, null, " "));
+    var status = await db.user.create({
+      userName: this.userName,
+      userPass: this.userPass,
+      userEmail: this.userEmail,
+    });
+    if (!!status && !!status.id) {
+      return status.id;
+    } else {
+      throw new Error("Error in creating user");
+    }
   }
 
-  static getUser() {
-    var arr = [];
-    for (let y in userDB) {
-      let { userId, userName } = userDB[y];
-      arr.push({ userId, userName });
-    }
+  static async getUser() {
+    var arr = await db.user.findAll({
+      attributes: ["id", "userName"],
+    });
     return arr;
   }
 
-  static getUserId(id) {
-    return userDB[id];
+  static async getUserId(id) {
+    var arr = await db.user.findOne({
+      where: { id: id },
+      include: [
+        {
+          model: db.contact,
+          attributes: ["conatctName", "id"],
+          include: [
+            {
+              model: db.contactinfo,
+              attributes: ["conatctInfoType", "conatctInfoData"],
+            },
+          ],
+        },
+      ],
+    });
+    return arr;
   }
 
-  static getUserAll() {
-    return userDB;
+  static async getUserAll() {
+    var arr = await db.user.findAll({
+      include: [
+        {
+          model: db.contact,
+          attributes: ["conatctName", "id"],
+          include: [
+            {
+              model: db.contactinfo,
+              attributes: ["conatctInfoType", "conatctInfoData"],
+            },
+          ],
+        },
+      ],
+    });
+    return arr;
+  }
+
+  static async findUsers(obj) {
+    var arr = await db.user.findOne({
+      where: { userName: obj.userName, userEmail: obj.userEmail },
+    });
+    return arr;
+  }
+
+  static async findUsersId(id) {
+    var arr = await db.user.findOne({
+      where: { id: id },
+    });
+    return arr;
   }
 }
 

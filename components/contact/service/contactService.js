@@ -1,15 +1,16 @@
 const Contact = require("../../../view/contact");
-const userDB = require("../../../db")
+const User = require("../../../view/user");
+const { userDB } = require("../../../db");
+const { badRequestError } = require("../../../error");
 
-var createContact = (userId,name) => {
-    console.log(userId)
-    console.log(userDB)
-    if(typeof userDB[userId] !== 'undefined'){
-        var id = Contact.createContact(userId,name);
-        return "Contact Created  |  " + id
-    }else{
-        throw new Error("Error: User not found!!")
-    }
-}
+var createContact = async (userId, name) => {
+  var user = await User.findUsersId(userId);
+  if (!!user && !!user.id) {
+    var id = await Contact.createContact(userId, name);
+    return "Contact Created  |  " + id;
+  } else {
+    throw new badRequestError("Error: User not found!!");
+  }
+};
 
-module.exports = {createContact}
+module.exports = { createContact };
