@@ -4,6 +4,7 @@ const {
   getUserId: getUserIdData,
   getUserAll: getUserAllData,
   verifyUsers: verifyUsers,
+  updateUserRec,
 } = require("../service/userService");
 
 const { badRequestError } = require("../../../error");
@@ -51,6 +52,7 @@ const login = async (req, res, next) => {
 };
 
 const getUser = async (req, res, next) => {
+  //Only Admin Acess
   var data = await getUserData();
   console.log(data);
   res.status(StatusCodes.OK).send(data);
@@ -62,8 +64,32 @@ const getUserId = async (req, res, next) => {
 };
 
 const getUserAll = async (req, res, next) => {
+  //Only Admin Acess
   var data = await getUserAllData();
   res.status(StatusCodes.OK).send(data);
 };
 
-module.exports = { createUser, getUser, getUserId, getUserAll, login };
+const updateUserDetails = async (req, res, next) => {
+  try {
+    var { name, pass } = req.body;
+    if (!!name && !!pass) {
+      console.log(res.locals.sessionUserId, "fdfdfdfd session id");
+      var result = await updateUserRec(res.locals.sessionUserId, name, pass);
+      res.status(StatusCodes.OK).send(result);
+    } else {
+      throw new badRequestError("Name, Pass, & email cannot be blank");
+    }
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+};
+
+module.exports = {
+  createUser,
+  getUser,
+  getUserId,
+  getUserAll,
+  login,
+  updateUserDetails,
+};

@@ -1,8 +1,14 @@
-const express = require("express")
+const express = require("express");
 const userRoute = express.Router();
 
-const contactCreate = require("./controller/contactController")
+const {
+  createContact,
+  updateContactDetails,
+  deleteContactDetails,
+} = require("./controller/contactController");
 
-userRoute.post('/',contactCreate)
+userRoute.post("/", createContact);
+userRoute.put("/", updateContactDetails);
+userRoute.delete("/", deleteContactDetails);
 
 module.exports = userRoute;

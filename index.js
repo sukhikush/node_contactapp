@@ -6,7 +6,11 @@ const JwtToken = require("./middleware/jwt");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 const app = express();
 
-var nonGaurdedRoute = ["/api/v1/user/create", "/api/v1/user/login"];
+var nonGaurdedRoute = ["/api/v1/user/login"];
+
+var userRouteAcess = {
+  admin: ["/api/v1/user/create", "/api/v1/user/getAll"],
+};
 
 app.use(express.json());
 
@@ -19,15 +23,8 @@ app.use(cookieParser());
 app.use(
   "/api/v1/user/",
   JwtToken.verifyToken(nonGaurdedRoute),
-  (req, res, next) => {
-    console.log("next route");
-    next();
-  },
-  route,
-  (err, req, res, next) => {
-    console.log("new next route");
-    next();
-  }
+  JwtToken.userSpecificRoutes(userRouteAcess),
+  route
 );
 
 app.use(errorHandlerMiddleware);
@@ -39,7 +36,7 @@ app.use("*", (req, res, next) => {
 });
 
 try {
-  const PORT = process.env.PORT || 4001;
+  const PORT = process.env.PORT || 4000;
   // await dbConnection()
   app.listen(PORT, console.log(`Server started at port ${PORT}`));
 } catch (error) {

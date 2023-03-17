@@ -77,11 +77,11 @@ class Users {
       include: [
         {
           model: db.contact,
-          attributes: ["conatctName", "id"],
+          attributes: ["id", "conatctName"],
           include: [
             {
               model: db.contactinfo,
-              attributes: ["conatctInfoType", "conatctInfoData"],
+              attributes: ["id", "conatctInfoType", "conatctInfoData"],
             },
           ],
         },
@@ -101,6 +101,19 @@ class Users {
     var arr = await db.user.findOne({
       where: { id: id },
     });
+    return arr;
+  }
+
+  static async updateUser(tran, userid, name, pass) {
+    var arr = await db.user.update(
+      { userName: name, userPass: pass },
+      {
+        where: {
+          id: userid,
+        },
+      },
+      { transaction: tran }
+    );
     return arr;
   }
 }

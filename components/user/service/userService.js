@@ -2,6 +2,7 @@ const { badRequestError } = require("../../../error");
 const Users = require("../../../view/user");
 const JWT = require("../../../middleware/jwt");
 const { userDB } = require("../../../db");
+const db = require("../../../models");
 
 var createUser = async (user) => {
   var isExistingUser = await Users.findUsers(user);
@@ -19,7 +20,12 @@ var getUser = async () => {
 };
 
 const getUserId = async (id) => {
-  return await Users.getUserId(id);
+  var data = await Users.getUserId(id);
+  if (!data) {
+    return "No matching user found";
+  } else {
+    return data;
+  }
 };
 
 const getUserAll = async () => {
@@ -44,4 +50,30 @@ const verifyUsers = async (user) => {
   }
 };
 
-module.exports = { createUser, getUser, getUserId, getUserAll, verifyUsers };
+const updateUserRec = async (userId, name, pass) => {
+  const tran = await db.sequelize.transaction();
+  try {
+    var data = await Users.updateUser(tran, userId, name, pass);
+    await tran.commit();
+  } catch (err) {
+    console.log(err);
+    await tran.rollback();
+    throw new badRequestError(
+      "Error: In Updating Contact; something went wrong!!"
+    );
+  }
+  if (!!data && data > 0) {
+    return "Contact Updated";
+  } else {
+    throw new badRequestError("Error: In Updating Contact; not found!!");
+  }
+};
+
+module.exports = {
+  createUser,
+  getUser,
+  getUserId,
+  getUserAll,
+  verifyUsers,
+  updateUserRec,
+};

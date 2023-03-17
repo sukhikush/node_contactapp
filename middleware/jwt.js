@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { unauthorizeAcess } = require("../error");
+const Users = require("../view/user");
 
 class JwtToken {
   constructor(name, email) {
@@ -28,16 +29,51 @@ class JwtToken {
             throw new unauthorizedError("No authorization cookie found");
           }
 
-          console.log(decode, "--------&&", process.env.JWT);
           const payload = jwt.verify(decode, process.env.JWT);
           console.log(payload);
+          res.locals.sessionUserName = payload.name;
+          res.locals.sessionUserEmail = payload.email;
+          await JwtToken.fetachSessionUserId(req, res, next);
           next();
         } catch (err) {
-          console.log("rrrrr=====rrr");
-          next(new unauthorizeAcess("hjdhj"));
+          next(new unauthorizeAcess(err));
         }
       }
     };
+  }
+
+  static userSpecificRoutes(routeMap) {
+    return (req, res, next) => {
+      for (let x in routeMap) {
+        console.log(x);
+        console.log(routeMap[x]);
+        if (routeMap[x].indexOf(req.originalUrl) > -1) {
+          if (x != res.locals.sessionUserName) {
+            throw new unauthorizeAcess("unauthorizeAcess - Route Acess");
+          }
+        }
+      }
+      next();
+    };
+  }
+
+  static async fetachSessionUserId(req, res, next) {
+    try {
+      var user = await Users.findUsers({
+        userName: res.locals.sessionUserName,
+        userEmail: res.locals.sessionUserEmail,
+      });
+
+      if (!!user && !!user.id) {
+        console.log("user valid", user.id);
+        res.locals.sessionUserId = user.id;
+      } else {
+        console.log("User id not found");
+        throw new unauthorizeAcess("unauthorizeAcess - Please login again");
+      }
+    } catch (err) {
+      next(err);
+    }
   }
 }
 

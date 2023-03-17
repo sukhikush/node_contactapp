@@ -28,6 +28,33 @@ class contact {
     });
     return arr;
   }
+
+  static async updateUserContact(tran, userid, contactId, name) {
+    var arr = await db.contact.update(
+      { conatctName: name },
+      {
+        where: {
+          userId: userid,
+          id: contactId,
+        },
+      },
+      { transaction: tran }
+    );
+    return arr;
+  }
+
+  static async deleteUserContact(tran, contcatId) {
+    var arr = await db.contact.destroy(
+      {
+        where: {
+          id: contcatId,
+        },
+      },
+      { transaction: tran }
+    );
+
+    return arr;
+  }
 }
 
 module.exports = contact;
